@@ -88,7 +88,10 @@ grub-install --target=x86_64-efi --efi-directory=/boot
 grub-mkconfig -o /boot/grub/grub.cfg
 EOF
 
-# Unmount filesystems
+#re-chroot for passwd end config
+chroot /mnt/gentoo /bin/bash
+
+
 
 
 # Reboot
