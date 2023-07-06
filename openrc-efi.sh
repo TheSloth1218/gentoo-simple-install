@@ -1,14 +1,23 @@
 #!/bin/bash
 
 # Set the desired hostname
-hostname="tux"
+echo "Please enter desired hostname:"
+read -r hostname
+
+# New line to make things look nice
+echo ""
 
 # Set the desired timezone
-timezone="America/Chicago"
+echo "Please enter desired timezone: (ex. America/New_York)"
+read -r timezone
+
+echo ""
 
 # Set the desired locale
-locale="en_US.UTF-8 UTF-8"
+echo "Please enter desired locale: (ex. en_US-UTF-8 UTF-8)"
+read -r locale
 
+echo ""
 
 # Download the stage3 tarball
 mkdir -p /mnt/gentoo
@@ -32,7 +41,12 @@ mount --rbind /dev /mnt/gentoo/dev
 mount --make-rslave /mnt/gentoo/dev
 mount --bind /run /mnt/gentoo/run
 mount --make-slave /mnt/gentoo/run
-# Ch into the Gentoo environment/mount boot part
+
+# Add MAKEOPTS automatically
+THREADS=$(expr $(nproc) / 2)
+echo "MAKEOPTS=\"-j"$THREADS"\"
+
+# Chroot into the Gentoo environment/mount boot part
 chroot /mnt/gentoo /bin/bash <<EOF
 source /etc/profile
 export PS1="(chroot) ${PS1}"
@@ -68,7 +82,6 @@ emerge -v sys-kernel/gentoo-kernel-bin
 
 # Configure the kernel
 eselect kernel set 1
-
 
 #Genfstab 
 emerge -v genfstab 
