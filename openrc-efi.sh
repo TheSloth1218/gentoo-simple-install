@@ -19,6 +19,10 @@ read -r locale
 
 echo ""
 
+# Check if archiso
+LIVEISO=$(cat /etc/os-release | head -n 1 | sed s/NAME=/''/)
+if [ $LIVEISO = '
+
 # Download the stage3 tarball
 mkdir -p /mnt/gentoo
 mount /dev/sda2 /mnt/gentoo
@@ -72,6 +76,25 @@ env-update && source /etc/profile
 echo "hostname=\"$hostname\"" > /etc/conf.d/hostname
 
 # Set the password
+echo "Please enter desired root password"
+passwd root
+
+# Add user account
+echo "Do you want a user account? (y/n)"
+read -r user_ask
+if [ $user_ask = "y" ]; then
+	echo "Please enter desired name:"
+	read -r user_name
+	echo ""
+	echo "Please enter desired groups: (ex. wheel,video,audio)"
+	read -r user_groups
+	echo ""
+	echo "Please enter desired shell: (ex. /bin/bash)"
+	read -r user_shell
+	echo "Please enter desired password: "
+	read -r user_password
+	useradd -m -G $user_groups -s $user_shell -p $user_password $user_name
+fi
 
 # Configure OpenRC
 rc-update add dhcpcd default
