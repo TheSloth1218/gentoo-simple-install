@@ -20,8 +20,10 @@ read -r locale
 echo ""
 
 # Check if archiso
-LIVEISO=$(cat /etc/os-release | head -n 1 | sed s/NAME=/''/)
-if [ $LIVEISO = '
+LIVEISO=$(cat /etc/os-release | awk '\NAME=\' |  head -n 1 | sed s/NAME=/''/)
+if [ $LIVEISO = 'Arch Linux' ]; then
+	pacman -Syu wget
+fi
 
 # Download the stage3 tarball
 mkdir -p /mnt/gentoo
