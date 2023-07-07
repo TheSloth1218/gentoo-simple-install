@@ -92,16 +92,16 @@ echo "Please enter desired root password"
 passwd root
 
 # Add user account
-echo "Do you want a user account? (y/n)"
+echo "Do you want a user account? y/n"
 #read -r user_ask
 if [ $user_ask = "y" ]; then
 	echo "Please enter desired name:"
 	read -r user_name
 	echo ""
-	echo "Please enter desired groups: (ex. wheel,video,audio)"
+	echo "Please enter desired groups: ex. wheel,video,audio"
 	read -r user_groups
 	echo ""
-	echo "Please enter desired shell: (ex. /bin/bash)"
+	echo "Please enter desired shell: ex. /bin/bash"
 	read -r user_shell
 	echo "Please enter desired password: "
 	read -r user_password
