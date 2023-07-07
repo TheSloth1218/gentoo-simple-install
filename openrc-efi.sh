@@ -33,23 +33,6 @@ fi
 
 echo ""
 
-# Set the desired locale
-echo "Please enter desired locale: (ex. en_US.UTF-8 UTF-8)"
-read -r locale
-
-# Set default locale if no input is provided
-if [ -z "$locale" ]; then
-    locale="en_US.UTF-8 UTF-8"
-fi
-
-# Validate locale syntax
-if [[ ! "$locale" =~ ^[a-zA-Z_]+\.[a-zA-Z_]+\s[a-zA-Z0-9\.\-]+$ ]]; then
-    echo "Invalid locale syntax. Please enter a valid locale."
-    exit 1
-fi
-
-echo ""
-
 
 
 
