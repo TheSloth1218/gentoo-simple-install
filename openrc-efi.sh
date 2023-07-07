@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if grep -q "Arch Linux" /etc/os-release && [ -f "/etc/arch-release" ]; then
-    pacman -Syu wget --noconfirm
+    pacman -Sy wget --noconfirm
     echo "Arch Linux ISO detected. Package list updated and wget installed."
 else
     echo "Please use the Arch-based live CD for this script to function"
