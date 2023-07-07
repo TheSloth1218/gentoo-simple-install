@@ -31,8 +31,8 @@ if [ -z "$timezone" ]; then
 fi
 
 # Validate timezone syntax
-if [[ ! "$timezone" =~ ^[a-zA-Z_]+/[a-zA-Z_]+$ ]]; then
-    echo "Invalid timezone syntax. Please enter a valid timezone."
+if [[ ! "$locale" =~ ^[a-zA-Z_]+\.[a-zA-Z_]+\s[a-zA-Z0-9\.\-]+\s[a-zA-Z0-9\.\-]+$ ]]; then
+    echo "Invalid locale syntax. Please enter a valid locale."
     exit 1
 fi
 
