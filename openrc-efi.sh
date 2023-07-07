@@ -42,7 +42,7 @@ read -r locale
 
 # Set default locale if no input is provided
 if [ -z "$locale" ]; then
-    locale="en_US.UTF-8"
+    locale="en_US.UTF-8 UTF-8"
 fi
 
 # Validate locale syntax
