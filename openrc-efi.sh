@@ -87,7 +87,6 @@ echo "MAKEOPTS=\"-j"$THREADS"\"
 # Chroot into the Gentoo environment/mount boot part
 chroot /mnt/gentoo /bin/bash <<EOF
 source /etc/profile
-export PS1="(chroot) ${PS1}"
 mount /dev/sda1 /boot
 
 #Sync initial portage tree/world set
