@@ -113,9 +113,9 @@ echo "Please enter desired root password"
 passwd root
 
 # Add user account
-#echo "Do you want a user account? (y/n)"
+echo "Do you want a user account? (y/n)"
 #read -r user_ask
-#if [ $user_ask = "y" ]; then
+if [ $user_ask = "y" ]; then
 	echo "Please enter desired name:"
 	read -r user_name
 	echo ""
@@ -127,7 +127,7 @@ passwd root
 	echo "Please enter desired password: "
 	read -r user_password
 	useradd -m -G $user_groups -s $user_shell -p $user_password $user_name
-#fi
+fi
 
 # Configure OpenRC
 rc-update add dhcpcd default
