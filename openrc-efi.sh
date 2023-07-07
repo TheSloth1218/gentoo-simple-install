@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#Check archiso 
+
 if grep -q "Arch Linux" /etc/os-release && [ -f "/etc/arch-release" ]; then
     pacman -Sy wget --noconfirm
     echo "Arch Linux ISO detected. Package list updated and wget installed."
@@ -53,7 +55,7 @@ fi
 
 echo ""
 
-# Check if archiso
+
 
 
 # Download the stage3 tarball
