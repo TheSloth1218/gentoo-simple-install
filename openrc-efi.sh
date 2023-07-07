@@ -1,5 +1,12 @@
 #!/bin/bash
 
+LIVEISO=$(cat /etc/os-release | awk -F= '/NAME=/ {print \$2}' | tr -d '"')
+if [ "$LIVEISO" = "Arch Linux" ]; then
+    pacman -Syu wget --noconfirm
+else
+    echo "Please use the Arch-based live CD for this script to function"
+fi
+
 # Set the desired hostname
 echo "Please enter desired hostname:"
 read -r hostname
@@ -20,10 +27,7 @@ read -r locale
 echo ""
 
 # Check if archiso
-LIVEISO=$(cat /etc/os-release | awk '\NAME=\' |  head -n 1 | sed s/NAME=/''/)
-if [ $LIVEISO = 'Arch Linux' ]; then
-	pacman -Syu wget --noconfirm
-fi
+
 
 # Download the stage3 tarball
 mkdir -p /mnt/gentoo
