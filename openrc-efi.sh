@@ -11,6 +11,11 @@ fi
 echo "Please enter desired hostname:"
 read -r hostname
 
+# Set default hostname if no input is provided
+if [ -z "$hostname" ]; then
+    hostname="gentoo"
+fi
+
 # New line to make things look nice
 echo ""
 
@@ -18,11 +23,33 @@ echo ""
 echo "Please enter desired timezone: (ex. America/New_York)"
 read -r timezone
 
+# Set default timezone if no input is provided
+if [ -z "$timezone" ]; then
+    timezone="America/New_York"
+fi
+
+# Validate timezone syntax
+if [[ ! "$timezone" =~ ^[a-zA-Z_]+/[a-zA-Z_]+$ ]]; then
+    echo "Invalid timezone syntax. Please enter a valid timezone."
+    exit 1
+fi
+
 echo ""
 
 # Set the desired locale
-echo "Please enter desired locale: (ex. en_US-UTF-8 UTF-8)"
+echo "Please enter desired locale: (ex. en_US.UTF-8 UTF-8)"
 read -r locale
+
+# Set default locale if no input is provided
+if [ -z "$locale" ]; then
+    locale="en_US.UTF-8"
+fi
+
+# Validate locale syntax
+if [[ ! "$locale" =~ ^[a-zA-Z_]+\.[a-zA-Z_]+\s[a-zA-Z_]+$ ]]; then
+    echo "Invalid locale syntax. Please enter a valid locale."
+    exit 1
+fi
 
 echo ""
 
