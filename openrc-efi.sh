@@ -22,16 +22,16 @@ fi
 echo ""
 
 # Set the desired timezone
-echo "Please enter desired timezone: (ex. America/New_York)"
-read -r timezone
+echo "Please enter desired locale: (ex. en_US.UTF-8 UTF-8)"
+read -r locale
 
-# Set default timezone if no input is provided
-if [ -z "$timezone" ]; then
-    timezone="America/New_York"
+# Set default locale if no input is provided
+if [ -z "$locale" ]; then
+    locale="en_US.UTF-8 UTF-8"
 fi
 
-# Validate timezone syntax
-if [[ ! "$locale" =~ ^[a-zA-Z_]+\.[a-zA-Z_]+\s[a-zA-Z0-9\.\-]+\s[a-zA-Z0-9\.\-]+$ ]]; then
+# Validate locale syntax
+if [[ ! "$locale" =~ ^[a-zA-Z_]+\.[a-zA-Z_]+\s[a-zA-Z0-9\.\-]+$ ]]; then
     echo "Invalid locale syntax. Please enter a valid locale."
     exit 1
 fi
