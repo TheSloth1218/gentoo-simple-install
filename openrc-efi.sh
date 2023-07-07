@@ -48,7 +48,7 @@ if [ -z "$locale" ]; then
 fi
 
 # Validate locale syntax
-if [[ ! "$locale" =~ ^[a-zA-Z_]+\.[a-zA-Z_]+\s[a-zA-Z_]+$ ]]; then
+if [[ ! "$locale" =~ ^[a-zA-Z_]+\.[a-zA-Z_]+\s[a-zA-Z0-9\.\-]+$ ]]; then
     echo "Invalid locale syntax. Please enter a valid locale."
     exit 1
 fi
