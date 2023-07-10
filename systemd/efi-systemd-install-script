@@ -41,33 +41,47 @@ while true; do
     read -p "Please enter root partition (e.g., /dev/nvme0n1p1): " root_par
     read -p "Are you sure you want \"$root_par\" as your root partition? (Y/N): " root_que
     if [[ " ${valid_ans_y[@]} " =~ " ${root_que} "]]; then
+        mkfs.$root_fs $root_par
+        break
+    fi
+done
+
+# Ask for boot partition and confirm
+while true; do
+    read -p "Please enter boot partition (e.g., /dev/nvme0n1p2: " boot_par
+    read -p "Are you sure you want \"$boot_par\" as your home partition? (Y/N): " boot_que
+    if [[ " ${valid_ans_y[@]} " =~ " ${boot_que} "]]; then
+        mkfs.fat -F 32 $boot_par
         break
     fi
 done
 
 # Ask for swap partition and confirm
 while true; do
-    read -p "Please enter swap partition (e.g., /dev/nvme0n1p2, keep blank if not applicable): " swap_par
+    read -p "Please enter swap partition (e.g., /dev/nvme0n1p3, keep blank if not applicable): " swap_par
     read -p "Are you sure you want \"$swap_par\" as your swap partition? (Y/N): " swap_que
     if [[ " ${valid_ans_y[@]} " =~ " ${swap_que} "]]; then
+        mkswap $swap_par
         break
     fi
 done
 
 # Ask for home partition and confirm
 while true; do
-    read -p "Please enter home partition (e.g., /dev/nvme0n1p3, keep blank if not applicable): " home_par
+    read -p "Please enter home partition (e.g., /dev/nvme0n1p4, keep blank if not applicable): " home_par
     read -p "Are you sure you want \"$home_par\" as your home partition? (Y/N): " home_que
     if [[ " ${valid_ans_y[@]} " =~ " ${home_que} "]]; then
+        mkfs.$root_fs
         break
     fi
 done
 
 # Ask for var partition and confirm
 while true; do
-    read -p "Please enter /var partition (e.g., /dev/nvme0n1p4, keep blank if not applicable): " var_par
+    read -p "Please enter /var partition (e.g., /dev/nvme0n1p5, keep blank if not applicable): " var_par
     read -p "Are you sure you want \"$var_par\" as your home partition? (Y/N): " var_que
     if [[ " ${valid_ans_y[@]} " =~ " ${var_que} "]]; then
+        mkfs.$root_fs
         break
     fi
 done
@@ -76,6 +90,7 @@ done
 mkdir -p /mnt/gentoo
 mount $root_par /mnt/gentoo
 mkdir -p /mnt/gentoo/{home,boot,var}
+mount $boot_par /mnt/gentoo/boot
 if [ ! -z "$home_par" ]; then
     mount $home_par /mnt/gentoo/home
 fi
@@ -198,4 +213,8 @@ fi
 if [ ! -z "$var_par" ]; then
     umount /mnt/gentoo/var
 fi
-echo "You may reboot now"
+if [ ! -z "$boot_par" ]; then
+    umount /mnt/gentoo/boot
+fi
+sleep 0.5
+reboot
