@@ -182,7 +182,6 @@ systemctl enable sshd default
 # Bootloader (Grub)
 emerge -v sys-boot/grub sys-boot/efibootmgr
 echo 'GRUB_PLATFORMS="efi-64"' >> /etc/portage/make.conf
-emerge -v grub
 grub-install --target=x86_64-efi --efi-directory=/boot
 grub-mkconfig -o /boot/grub/grub.cfg
 
