@@ -18,20 +18,184 @@ echo "Root Password: $root_password"
 # Automatically detect latest version of gentoo of preferred init system
 GENTOOVER=$(sed 's|/[^/]*$||' <<< head -l 3 <<< $(curl -fsSL https://bouncer.gentoo.org/fetch/root/all/releases/amd64/autobuilds/latest-stage3-amd64-systemd.txt) | tail -1 )
 
+# Set valid Yes/No answers
+valid_ans_y=("yeah" "Yeah" "YEAH" "y" "Y" "yes" "Yes" "YES")
+valid_ans_n=("nah" "Nah" "NAH" "n" "N" "no" "No" "NO")
+
 # Ask if user wants to partition their disk
-valid_ans=("yeah" "Yeah" "YEAH" "y" "Y" "yes" "Yes" "YES")
 while true; do
-    read -p "Do you need to partition your disk?: (Y/N) " partition_question
-    if [[ " ${valid_ans[@]} " =~ " ${partition_question} " ]]; then
+    read -p "Do you need to partition your disk?: (Y/N) " part_que
+    if [[ " ${valid_ans_y[@]} " =~ " ${part_que} " ]]; then
         cfdisk
 	break
     else
-        echo "Invalid filesystem. Please choose one of the following: ${valid_fs[@]}"
+        echo "Invalid answer. Please choose one of the following: ${valid_ans_y[@]}"
     fi
 done
+
+# List partitions for user to reference
+lsblk
+
+# Ask for root partition and confirm
+while true; do
+    read -p "Please enter root partition (e.g., /dev/nvme0n1p1): " root_par
+    read -p "Are you sure you want \"$root_par\" as your root partition? (Y/N): " root_que
+    if [[ " ${valid_ans_y[@]} " =~ " ${root_que} "]]; then
+        break
+    fi
+done
+
+# Ask for swap partition and confirm
+while true; do
+    read -p "Please enter swap partition (e.g., /dev/nvme0n1p2, keep blank if not applicable): " swap_par
+    read -p "Are you sure you want \"$swap_par\" as your swap partition? (Y/N): " swap_que
+    if [[ " ${valid_ans_y[@]} " =~ " ${swap_que} "]]; then
+        break
+    fi
+done
+
+# Ask for home partition and confirm
+while true; do
+    read -p "Please enter home partition (e.g., /dev/nvme0n1p3, keep blank if not applicable): " home_par
+    read -p "Are you sure you want \"$home_par\" as your home partition? (Y/N): " home_que
+    if [[ " ${valid_ans_y[@]} " =~ " ${home_que} "]]; then
+        break
+    fi
+done
+
+# Ask for var partition and confirm
+while true; do
+    read -p "Please enter /var partition (e.g., /dev/nvme0n1p4, keep blank if not applicable): " var_par
+    read -p "Are you sure you want \"$var_par\" as your home partition? (Y/N): " var_que
+    if [[ " ${valid_ans_y[@]} " =~ " ${var_que} "]]; then
+        break
+    fi
+done
+
+# Make /mnt/gentoo and mount partitions
+mkdir -p /mnt/gentoo
+mount $root_par /mnt/gentoo
+mkdir -p /mnt/gentoo/{home,boot,var}
+if [ ! -z "$home_par" ]; then
+    mount $home_par /mnt/gentoo/home
+fi
+if [ ! -z "$var_par" ]; then
+    mount $var_par /mnt/gentoo/var
+fi
+if [ ! -z "$swap_par" ]; then
+    swapon $swap_par
+fi
 
 # Change Directory into mounted root
 cd /mnt/gentoo
 
 # Fetch the gentoo stage3 with preferred init system
 wget https://bouncer.gentoo.org/fetch/root/all/releases/amd64/autobuilds/$GENTOOVER/stage3-amd64-systemd-$GENTOOVER.tar.xz
+
+# Extract said tarball
+tar xpvf stage3-*.tar.xz --xattrs-include='*.*' --numeric-owner
+
+# Automatically add makeopts
+threads=$(expr $(nproc) / 2)
+if [ "$threads" == "0" ]; then
+    echo "MAKEOPTS=\"$(nproc)\"" | tee -a /mnt/gentoo/portage/make.conf
+else
+    echo "MAKEOPTS=\"$threads\"" | tee -a /mnt/gentoo/portage/make.conf
+fi
+
+# Accept all licenses
+echo "ACCEPT_LICENSE=\"*\"" | tee -a /mnt/gentoo/portage/make.conf
+
+# Ask for mirror selection
+while true; do
+    read -p "Do you want to select mirrors? (Y/N): " mirror_que
+    if [[ " ${valid_ans_y[@]} " =~ " ${mirror_que} " ]]; then
+        mirrorselect -i -o >> /mnt/gentoo/etc/portage/make.conf
+	    break
+    else
+        break
+    fi
+done
+
+# Copy over resolv.conf
+cp --dereference /etc/resolv.conf /mnt/gentoo/etc/
+
+# Mount necessary filesystems
+mount --types proc /proc /mnt/gentoo/proc
+mount --rbind /sys /mnt/gentoo/sys
+mount --make-rslave /mnt/gentoo/sys
+mount --rbind /dev /mnt/gentoo/dev
+mount --make-rslave /mnt/gentoo/dev
+mount --bind /run /mnt/gentoo/run
+mount --make-slave /mnt/gentoo/run 
+
+# Fix /run/smh (not needed but just incase)
+test -L /dev/shm && rm /dev/shm && mkdir /dev/shm
+mount --types tmpfs --options nosuid,nodev,noexec shm /dev/shm
+chmod 1777 /dev/shm /run/shm
+
+# Chroot into system
+chroot /mnt/gentoo /bin/bash --login <<EOF
+
+# Sync gentoo repos
+emerge-webrsync
+emerge --sync
+
+# Update world
+emerge -uvDN @world
+
+# Setup locale
+echo "$locale" > /etc/locale-gen
+locale.gen
+## This is kinda scuffed ik
+locale_num=$(eselect locale list | grep $locale | awk '{print $1}' | sed 's/\[/''/' | sed 's/\]/''/')
+eselect locale set $locale_num
+
+# Set the hostname
+echo "hostname=\"$hostname\"" > /etc/conf.d/hostname
+
+# Set the root password
+echo "$root_password" | passwd --stdin root
+
+# Set timezone
+ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
+
+# Update the environment
+env-update && source /etc/profile\
+
+# Install kernel
+emerge -v sys-kernel/gentoo-kernel-bin sys-kernel/linux-firmware
+
+# Configure the kernel
+eselect kernel set 1
+
+# Generate fstab
+emerge -v genfstab 
+genfstab -U / >> /etc/fstab
+
+# System tools
+emerge -v chrony mlocate genlop gentoolkit dev-vcs/git ufed xfsprogs dosfstools
+systemctl enable chronyd
+systemctl enable dhcpcd default
+systemctl enable sshd default
+
+# Bootloader (Grub)
+echo 'GRUB_PLATFORMS="efi-64"' >> /etc/portage/make.conf
+emerge -v grub
+grub-install --target=x86_64-efi --efi-directory=/boot
+grub-mkconfig -o /boot/grub/grub.cfg
+
+EOF
+
+# Rechroot for extra configuration
+chroot /mnt/gentoo /bin/bash --login
+
+# Reboot
+umount /mnt/gentoo
+if [ ! -z "$home_par" ]; then
+    umount /mnt/gentoo/home
+fi
+if [ ! -z "$var_par" ]; then
+    umount /mnt/gentoo/var
+fi
+echo "You may reboot now"
